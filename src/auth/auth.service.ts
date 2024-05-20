@@ -6,13 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, LoginUserDto } from './dto';
 
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 import { Repository } from 'typeorm';
-import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -39,6 +38,21 @@ export class AuthService {
     } catch (error) {
       this.handleDbError(error);
     }
+  }
+
+  async login(loginUserDto: LoginUserDto) {
+    const { password, email } = loginUserDto;
+
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: { email: true, password: true },
+    });
+
+    if (!user) throw new UnauthorizedException('Credential invalid (Email)');
+
+    if (!bcrypt.compareSync(password, user.password))
+      throw new UnauthorizedException('Credential invalid (Password)');
+    return user;
   }
 
   private handleDbError(error: any) {
