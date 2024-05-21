@@ -12,12 +12,14 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
   async create(createUserDto: CreateUserDto) {
     try {
@@ -32,9 +34,7 @@ export class AuthService {
       delete user.password;
       delete user.isActive;
 
-      return user;
-
-      //TODO: Retornar JWT
+      return { ...user, token: this.getJwtToken({ email: user.email }) };
     } catch (error) {
       this.handleDbError(error);
     }
@@ -52,9 +52,12 @@ export class AuthService {
 
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Credential invalid (Password)');
-    return user;
+    return { ...user, token: this.getJwtToken({ email: user.email }) };
   }
-
+  private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
+  }
   private handleDbError(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
 
