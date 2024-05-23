@@ -46,7 +46,7 @@ export class FilesController {
   newFiles(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('File not found');
 
-    const secureUrl = `${this.configService.get('HOST_API')}/files/product/${file.filename}`;
+    const secureUrl = `${this.configService.get('HOST_API')}/filesx/product/${file.filename}`;
     return {
       secureUrl,
     };

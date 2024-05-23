@@ -13,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -53,6 +54,14 @@ export class AuthService {
     if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Credential invalid (Password)');
       return { ...user, token: this.getJwtToken({ id: user.id}) };
+  }
+
+
+  checkAuthStatus(user:User){
+
+    return { ...user, token: this.getJwtToken({ id: user.id}) };
+
+
   }
   private getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
